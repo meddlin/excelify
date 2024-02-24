@@ -1,3 +1,11 @@
+# Custom ignores: helpful with development, testing
+*.csv
+*.xlsx
+
+# venv environment
+/Scripts
+pyvenv.cfg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
