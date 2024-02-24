@@ -67,13 +67,13 @@ def read_csv(filename: str) -> dict[str, dict[str, str]]:
     
     return { 'full': full, 'abridged': abridged }
 
-def create_workbooks(full: dict[str, str], abridged: dict[str, str], output: str):
+def create_workbooks(full: dict[str, str], abridged: dict[str, str], sheet_name: str, output: str):
     """ Create workbooks and control what changes are made to them. (This is where the magic happens)"""
 
     wb = Workbook()
     del wb['Sheet'] # Delete the default sheet
 
-    ws1 = wb.create_sheet('Transactions')
+    ws1 = wb.create_sheet(sheet_name)
     ws2 = wb.create_sheet('raw_data')
     
     wb.active = ws1
@@ -144,15 +144,15 @@ def main():
                                                         '''))
     parser.add_argument('--csv', type=str, required=True, dest='arg_csv', help="Path to .csv file to process")
     parser.add_argument('--output', type=str, required=True, dest='arg_output', help="Output path for resulting .xlsx file")
+    parser.add_argument('--sheet', type=str, required=True, dest='arg_sheet', help="Worksheet name where filtered data will land")
+    
     args = parser.parse_args()
     arg_csv = args.arg_csv
     arg_output = args.arg_output
-
-    # print(f'arg_csv: {arg_csv}')
-    # print(f'arg_output: {arg_output}')
+    arg_sheet = args.arg_sheet
 
     datasheets = read_csv(arg_csv)
-    create_workbooks(full=datasheets['full'], abridged=datasheets['abridged'], output=arg_output)
+    create_workbooks(full=datasheets['full'], abridged=datasheets['abridged'], sheet_name=arg_sheet, output=arg_output)
 
 if __name__ == "__main__":
     main()
