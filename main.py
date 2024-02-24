@@ -67,7 +67,7 @@ def read_csv(filename: str) -> dict[str, dict[str, str]]:
     
     return { 'full': full, 'abridged': abridged }
 
-def create_workbooks(full: dict[str, str], abridged: dict[str, str]):
+def create_workbooks(full: dict[str, str], abridged: dict[str, str], output: str):
     """ Create workbooks and control what changes are made to them. (This is where the magic happens)"""
 
     wb = Workbook()
@@ -151,7 +151,8 @@ def main():
     print(f'arg_csv: {arg_csv}')
     print(f'arg_output: {arg_output}')
 
-    
+    datasheets = read_csv(arg_csv)
+    create_workbooks(full=datasheets['full'], abridged=datasheets['abridged'], output=arg_output)
 
 if __name__ == "__main__":
     main()

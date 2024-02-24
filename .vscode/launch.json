@@ -17,6 +17,14 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": "${command:pickArgs}"
+        },
+        {
+            "name": "Python Debugger: csv, output args set",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": "--csv report.csv --output report.xlsx"
         }
     ]
 }
