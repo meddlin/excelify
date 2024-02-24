@@ -132,7 +132,7 @@ def create_workbooks(full: dict[str, str], abridged: dict[str, str], output: str
     configure_filters(ws2, full_sheet_row_counter, num_of_cols)
 
     set_zoom_scale(wb)
-    wb.save('transactions-report.xlsx')
+    wb.save(output)
 
 def main():
     parser = argparse.ArgumentParser(prog='excelify',
@@ -148,8 +148,8 @@ def main():
     arg_csv = args.arg_csv
     arg_output = args.arg_output
 
-    print(f'arg_csv: {arg_csv}')
-    print(f'arg_output: {arg_output}')
+    # print(f'arg_csv: {arg_csv}')
+    # print(f'arg_output: {arg_output}')
 
     datasheets = read_csv(arg_csv)
     create_workbooks(full=datasheets['full'], abridged=datasheets['abridged'], output=arg_output)
