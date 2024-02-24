@@ -68,6 +68,8 @@ def read_csv(filename: str) -> dict[str, dict[str, str]]:
     return { 'full': full, 'abridged': abridged }
 
 def create_workbooks(full: dict[str, str], abridged: dict[str, str]):
+    """ Create workbooks and control what changes are made to them. (This is where the magic happens)"""
+
     wb = Workbook()
     del wb['Sheet'] # Delete the default sheet
 
@@ -142,10 +144,11 @@ def main():
                                                                 excelify.py --csv [file] --options bold_header,filter,af_cols
                                                         '''))
     parser.add_argument('--csv', type=str, required=True, dest='cli_args', help="Path to .csv file to process")
+    parser.add_argument('--output', type=str, required=True, dest='cli_args', help="Output path for resulting .xlsx file")
     args = parser.parse_args()
     cli_args = args.cli_args
 
     print(f'cli_args: {cli_args}')
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()
