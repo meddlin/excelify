@@ -24,7 +24,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": "--csv report.csv --output report.xlsx"
+            "args": "--csv report.csv --output report.xlsx --sheet filtered"
         }
     ]
 }
