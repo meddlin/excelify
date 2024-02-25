@@ -11,6 +11,8 @@ from openpyxl.worksheet.filters import (
     Filters,
 )
 
+import utility
+
 # Note: This looks helpful.
 # Openpyxl - How to apply autofilter to columns
 # https://openpyxl.readthedocs.io/en/latest/filters.html
@@ -67,8 +69,11 @@ def read_csv(filename: str) -> dict[str, dict[str, str]]:
     
     return { 'full': full, 'abridged': abridged }
 
-def create_workbooks(full: dict[str, str], abridged: dict[str, str], sheet_name: str, output: str):
+def create_workbooks(full: dict[str, str], abridged: dict[str, str], filter_columns: str, sheet_name: str, output: str):
     """ Create workbooks and control what changes are made to them. (This is where the magic happens)"""
+
+    # filter_columns = ['Posting Date', 'Amount', 'Description', 'Transaction Category', 'Extended Description']
+    filter_columns = utility.format_filter_cols(filter_columns)
 
     wb = Workbook()
     del wb['Sheet'] # Delete the default sheet
@@ -77,55 +82,32 @@ def create_workbooks(full: dict[str, str], abridged: dict[str, str], sheet_name:
     ws2 = wb.create_sheet('raw_data')
     
     wb.active = ws1
-    ws1.append(['Posting Date', 'Amount', 'Description', 'Transaction Category', 'Extended Description'])
+    ws1.append(filter_columns)
     bold_header(ws1) # NOTE: Must execute AFTER data has been written to the header row.
 
     row_counter = 0
-    num_of_cols = len(abridged[0].keys())
+    abr_num_of_cols = len(abridged[0].keys())
+    abr_col_names = list(abridged[0].keys())
     for row in abridged:
+        # TODO: Add ability to *add* columns instead of only filter what is already there.
         # ws1.append([row['Posting Date'], row['Amount'], row['Description'], row['Transaction Category'], row['Extended Description']])
-        ws1.append([row['Posting Date'], row['Amount'], row['Description']])
+        ws1.append( utility.get_row_filtered(row, abr_col_names, filter_columns) )
         row_counter += 1
     
     autofit_columns(ws1)
-    configure_filters(ws1, row_counter, num_of_cols)
+    configure_filters(ws1, row_counter, abr_num_of_cols)
 
     
     wb.active = ws2
-    ws2.append([
-        'Transaction ID', 
-        'Posting Date', 
-        'Effective Date', 
-        'Transaction Type', 
-        'Amount', 
-        'Check Number', 
-        'Reference Number',
-        'Description',
-        'Transaction Category',
-        'Type',
-        'Balance',
-        'Memo',
-        'Extended Description'
-    ])
+    num_of_cols = len(full[0].keys())
+    col_names = list(full[0].keys())
+
+    ws2.append(col_names) # NOTE: Creates header row
     bold_header(ws2) # NOTE: Must execute AFTER data has been written to the header row.
     full_sheet_row_counter = 0
-    num_of_cols = len(full[0].keys())
-    for row in full:
-        ws2.append([
-            row['Transaction ID'], 
-            row['Posting Date'], 
-            row['Effective Date'],
-            row['Transaction Type'],
-            row['Amount'], 
-            row['Check Number'],
-            row['Reference Number'],
-            row['Description'],
-            row['Transaction Category'],
-            row['Type'],
-            row['Balance'],
-            row['Memo'],
-            row['Extended Description']
-        ])
+    
+    for f_row in full:
+        ws2.append( utility.get_row(f_row, col_names) )
         full_sheet_row_counter += 1
     
     autofit_columns(ws2)
@@ -145,14 +127,16 @@ def main():
     parser.add_argument('--csv', type=str, required=True, dest='arg_csv', help="Path to .csv file to process")
     parser.add_argument('--output', type=str, required=True, dest='arg_output', help="Output path for resulting .xlsx file")
     parser.add_argument('--sheet', type=str, required=True, dest='arg_sheet', help="Worksheet name where filtered data will land")
+    parser.add_argument('--filter-cols', type=str, required=True, dest='arg_filter_cols', help="comma-separated list of columns to INCLUDE on new worksheet, other columns are left behind on 'raw' worksheet")
     
     args = parser.parse_args()
     arg_csv = args.arg_csv
     arg_output = args.arg_output
     arg_sheet = args.arg_sheet
+    arg_filter_cols = args.arg_filter_cols
 
     datasheets = read_csv(arg_csv)
-    create_workbooks(full=datasheets['full'], abridged=datasheets['abridged'], sheet_name=arg_sheet, output=arg_output)
+    create_workbooks(full=datasheets['full'], abridged=datasheets['abridged'], filter_columns=arg_filter_cols, sheet_name=arg_sheet, output=arg_output)
 
 if __name__ == "__main__":
     main()
