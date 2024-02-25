@@ -24,7 +24,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": "--csv transactions.csv --output debug-out.xlsx --sheet filtered",
+            "args": "--csv transactions.csv --output debug-out.xlsx --sheet filtered --filter-cols \"'Posting Date', Amount, Description\"",
             "justMyCode": false
         }
     ]

@@ -69,11 +69,11 @@ def read_csv(filename: str) -> dict[str, dict[str, str]]:
     
     return { 'full': full, 'abridged': abridged }
 
-def create_workbooks(full: dict[str, str], abridged: dict[str, str], sheet_name: str, output: str):
+def create_workbooks(full: dict[str, str], abridged: dict[str, str], filter_columns: str, sheet_name: str, output: str):
     """ Create workbooks and control what changes are made to them. (This is where the magic happens)"""
 
     # filter_columns = ['Posting Date', 'Amount', 'Description', 'Transaction Category', 'Extended Description']
-    filter_columns = ['Posting Date', 'Amount', 'Description']
+    filter_columns = utility.format_filter_cols(filter_columns)
 
     wb = Workbook()
     del wb['Sheet'] # Delete the default sheet
@@ -127,14 +127,16 @@ def main():
     parser.add_argument('--csv', type=str, required=True, dest='arg_csv', help="Path to .csv file to process")
     parser.add_argument('--output', type=str, required=True, dest='arg_output', help="Output path for resulting .xlsx file")
     parser.add_argument('--sheet', type=str, required=True, dest='arg_sheet', help="Worksheet name where filtered data will land")
+    parser.add_argument('--filter-cols', type=str, required=True, dest='arg_filter_cols', help="comma-separated list of columns to INCLUDE on new worksheet, other columns are left behind on 'raw' worksheet")
     
     args = parser.parse_args()
     arg_csv = args.arg_csv
     arg_output = args.arg_output
     arg_sheet = args.arg_sheet
+    arg_filter_cols = args.arg_filter_cols
 
     datasheets = read_csv(arg_csv)
-    create_workbooks(full=datasheets['full'], abridged=datasheets['abridged'], sheet_name=arg_sheet, output=arg_output)
+    create_workbooks(full=datasheets['full'], abridged=datasheets['abridged'], filter_columns=arg_filter_cols, sheet_name=arg_sheet, output=arg_output)
 
 if __name__ == "__main__":
     main()
