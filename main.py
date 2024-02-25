@@ -132,7 +132,7 @@ def main():
     parser.add_argument('--csv', type=str, required=True, dest='arg_csv', help="Path to .csv file to process")
     parser.add_argument('--output', type=str, required=True, dest='arg_output', help="Output path for resulting .xlsx file")
     parser.add_argument('--sheet', type=str, required=True, dest='arg_sheet', help="Worksheet name where filtered data will land")
-    parser.add_argument('--filter-cols', type=str, required=True, dest='arg_filter_cols', help="comma-separated list of columns to INCLUDE on new worksheet, other columns are left behind on 'raw' worksheet")
+    parser.add_argument('--filter-cols', type=str, required=True, dest='arg_filter_cols', help="Comma-separated list of columns to INCLUDE on new worksheet, other columns are left behind on 'raw' worksheet")
     
     args = parser.parse_args()
     arg_csv = args.arg_csv
