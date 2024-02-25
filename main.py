@@ -69,8 +69,25 @@ def read_csv(filename: str) -> dict[str, dict[str, str]]:
     
     return { 'full': full, 'abridged': abridged }
 
+def create_full_workbook(workbook, worksheet, full: dict[str, str]):
+    """Manage creating the 'full' workbook. This one is basically a copy of the original CSV data."""
+    workbook.active = worksheet
+    num_of_cols = len(full[0].keys())
+    col_names = list(full[0].keys())
+
+    worksheet.append(col_names) # NOTE: Creates header row
+    bold_header(worksheet) # NOTE: Must execute AFTER data has been written to the header row.
+    full_sheet_row_counter = 0
+    
+    for f_row in full:
+        worksheet.append( utility.get_row(f_row, col_names) )
+        full_sheet_row_counter += 1
+    
+    autofit_columns(worksheet)
+    configure_filters(worksheet, full_sheet_row_counter, num_of_cols)
+
 def create_workbooks(full: dict[str, str], abridged: dict[str, str], filter_columns: str, sheet_name: str, output: str):
-    """ Create workbooks and control what changes are made to them. (This is where the magic happens)"""
+    """Create workbooks and control what changes are made to them. (This is where the magic happens)"""
 
     # filter_columns = ['Posting Date', 'Amount', 'Description', 'Transaction Category', 'Extended Description']
     filter_columns = utility.format_filter_cols(filter_columns)
@@ -97,21 +114,21 @@ def create_workbooks(full: dict[str, str], abridged: dict[str, str], filter_colu
     autofit_columns(ws1)
     configure_filters(ws1, row_counter, abr_num_of_cols)
 
-    
-    wb.active = ws2
-    num_of_cols = len(full[0].keys())
-    col_names = list(full[0].keys())
+    create_full_workbook(workbook=wb, worksheet=ws2, full=full)
+    # wb.active = ws2
+    # num_of_cols = len(full[0].keys())
+    # col_names = list(full[0].keys())
 
-    ws2.append(col_names) # NOTE: Creates header row
-    bold_header(ws2) # NOTE: Must execute AFTER data has been written to the header row.
-    full_sheet_row_counter = 0
+    # ws2.append(col_names) # NOTE: Creates header row
+    # bold_header(ws2) # NOTE: Must execute AFTER data has been written to the header row.
+    # full_sheet_row_counter = 0
     
-    for f_row in full:
-        ws2.append( utility.get_row(f_row, col_names) )
-        full_sheet_row_counter += 1
+    # for f_row in full:
+    #     ws2.append( utility.get_row(f_row, col_names) )
+    #     full_sheet_row_counter += 1
     
-    autofit_columns(ws2)
-    configure_filters(ws2, full_sheet_row_counter, num_of_cols)
+    # autofit_columns(ws2)
+    # configure_filters(ws2, full_sheet_row_counter, num_of_cols)
 
     set_zoom_scale(wb)
     wb.save(output)
