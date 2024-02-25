@@ -7,7 +7,7 @@ def get_row(row: dict[str, str], column_names: list[str]):
     return data
 
 def get_row_filtered(row: dict[str, str], column_names: list[str], filter_columns: list[str]):
-    """  """
+    """"""
     
     data = []
     for col in column_names:
@@ -17,7 +17,7 @@ def get_row_filtered(row: dict[str, str], column_names: list[str], filter_column
     return data
 
 def format_filter_cols(filter_cs_list: str):
-    """ Separate filter columns.
+    """Separate filter columns.
         Remove leading and trailiing whitespace from filter columns.
         Return as a list.
     """

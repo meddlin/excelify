@@ -69,8 +69,42 @@ def read_csv(filename: str) -> dict[str, dict[str, str]]:
     
     return { 'full': full, 'abridged': abridged }
 
+def create_full_workbook(workbook, worksheet, full: dict[str, str]):
+    """Manage creating the 'full' workbook. This one is basically a copy of the original CSV data."""
+    workbook.active = worksheet
+    num_of_cols = len(full[0].keys())
+    col_names = list(full[0].keys())
+
+    worksheet.append(col_names) # NOTE: Creates header row
+    bold_header(worksheet) # NOTE: Must execute AFTER data has been written to the header row.
+    full_sheet_row_counter = 0
+    
+    for f_row in full:
+        worksheet.append( utility.get_row(f_row, col_names) )
+        full_sheet_row_counter += 1
+    
+    autofit_columns(worksheet)
+    configure_filters(worksheet, full_sheet_row_counter, num_of_cols)
+
+def create_filtered_workbook(workbook, worksheet, abridged: dict[str, str], filter_columns: list[str]):
+    workbook.active = worksheet
+    worksheet.append(filter_columns)
+    bold_header(worksheet) # NOTE: Must execute AFTER data has been written to the header row.
+
+    row_counter = 0
+    abr_num_of_cols = len(abridged[0].keys())
+    abr_col_names = list(abridged[0].keys())
+    for row in abridged:
+        # TODO: Add ability to *add* columns instead of only filter what is already there.
+        # ws1.append([row['Posting Date'], row['Amount'], row['Description'], row['Transaction Category'], row['Extended Description']])
+        worksheet.append( utility.get_row_filtered(row, abr_col_names, filter_columns) )
+        row_counter += 1
+    
+    autofit_columns(worksheet)
+    configure_filters(worksheet, row_counter, abr_num_of_cols)
+
 def create_workbooks(full: dict[str, str], abridged: dict[str, str], filter_columns: str, sheet_name: str, output: str):
-    """ Create workbooks and control what changes are made to them. (This is where the magic happens)"""
+    """Create workbooks and control what changes are made to them. (This is where the magic happens)"""
 
     # filter_columns = ['Posting Date', 'Amount', 'Description', 'Transaction Category', 'Extended Description']
     filter_columns = utility.format_filter_cols(filter_columns)
@@ -81,37 +115,8 @@ def create_workbooks(full: dict[str, str], abridged: dict[str, str], filter_colu
     ws1 = wb.create_sheet(sheet_name)
     ws2 = wb.create_sheet('raw_data')
     
-    wb.active = ws1
-    ws1.append(filter_columns)
-    bold_header(ws1) # NOTE: Must execute AFTER data has been written to the header row.
-
-    row_counter = 0
-    abr_num_of_cols = len(abridged[0].keys())
-    abr_col_names = list(abridged[0].keys())
-    for row in abridged:
-        # TODO: Add ability to *add* columns instead of only filter what is already there.
-        # ws1.append([row['Posting Date'], row['Amount'], row['Description'], row['Transaction Category'], row['Extended Description']])
-        ws1.append( utility.get_row_filtered(row, abr_col_names, filter_columns) )
-        row_counter += 1
-    
-    autofit_columns(ws1)
-    configure_filters(ws1, row_counter, abr_num_of_cols)
-
-    
-    wb.active = ws2
-    num_of_cols = len(full[0].keys())
-    col_names = list(full[0].keys())
-
-    ws2.append(col_names) # NOTE: Creates header row
-    bold_header(ws2) # NOTE: Must execute AFTER data has been written to the header row.
-    full_sheet_row_counter = 0
-    
-    for f_row in full:
-        ws2.append( utility.get_row(f_row, col_names) )
-        full_sheet_row_counter += 1
-    
-    autofit_columns(ws2)
-    configure_filters(ws2, full_sheet_row_counter, num_of_cols)
+    create_filtered_workbook(workbook=wb, worksheet=ws1, abridged=abridged, filter_columns=filter_columns)
+    create_full_workbook(workbook=wb, worksheet=ws2, full=full)
 
     set_zoom_scale(wb)
     wb.save(output)
