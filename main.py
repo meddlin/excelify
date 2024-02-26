@@ -3,13 +3,7 @@ from string import ascii_uppercase
 import argparse, textwrap
 from openpyxl import Workbook
 from openpyxl.styles import Font
-from openpyxl.worksheet.filters import (
-    FilterColumn,
-    CustomFilter,
-    CustomFilters,
-    DateGroupItem,
-    Filters,
-)
+from openpyxl.worksheet.filters import FilterColumn
 
 import utility
 
@@ -115,7 +109,6 @@ def create_filtered_workbook(workbook, worksheet, abridged: dict[str, str], filt
 def create_workbooks(full: dict[str, str], abridged: dict[str, str], filter_columns: str, sheet_name: str, output: str):
     """Create workbooks and control what changes are made to them. (This is where the magic happens)"""
 
-    # filter_columns = ['Posting Date', 'Amount', 'Description', 'Transaction Category', 'Extended Description']
     filter_columns = utility.format_filter_cols(filter_columns)
 
     wb = Workbook()
