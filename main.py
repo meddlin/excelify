@@ -3,13 +3,7 @@ from string import ascii_uppercase
 import argparse, textwrap
 from openpyxl import Workbook
 from openpyxl.styles import Font
-from openpyxl.worksheet.filters import (
-    FilterColumn,
-    CustomFilter,
-    CustomFilters,
-    DateGroupItem,
-    Filters,
-)
+from openpyxl.worksheet.filters import FilterColumn
 
 import utility
 
@@ -51,8 +45,21 @@ def bold_header(ws):
     for c in ascii_uppercase:
         ws[f'{c}1'].font = Font(bold=True)
 
+
+def build_dict(row, filter_cols) -> dict[str, str]:
+    """Return a new dictionary of items from the row, that are in the filter columns."""
+    # NOTE: https://www.guru99.com/python-dictionary-append.html
+
+    data = {}
+    
+    for key in row.keys():
+        if key in filter_cols:
+            data[key] = row[key]
+
+    return data
+
 # This was helpful: https://stackoverflow.com/questions/37182528/how-to-append-data-using-openpyxl-python-to-excel-file-from-a-specified-row
-def read_csv(filename: str) -> dict[str, dict[str, str]]:
+def read_csv(filename: str, filter_cols: list[str]) -> dict[str, dict[str, str]]:
     """ Read CSV into two dictionaries. A full and abridged version. """
     full = []
     abridged = []
@@ -61,11 +68,7 @@ def read_csv(filename: str) -> dict[str, dict[str, str]]:
         reader = csv.DictReader(file)
         for row in reader:
             full.append(row)
-            abridged.append({
-                                'Posting Date': row['Posting Date'], 
-                                'Amount': row['Amount'], 
-                                'Description': row['Description']
-                            })
+            abridged.append(build_dict(row, filter_cols))            
     
     return { 'full': full, 'abridged': abridged }
 
@@ -106,7 +109,6 @@ def create_filtered_workbook(workbook, worksheet, abridged: dict[str, str], filt
 def create_workbooks(full: dict[str, str], abridged: dict[str, str], filter_columns: str, sheet_name: str, output: str):
     """Create workbooks and control what changes are made to them. (This is where the magic happens)"""
 
-    # filter_columns = ['Posting Date', 'Amount', 'Description', 'Transaction Category', 'Extended Description']
     filter_columns = utility.format_filter_cols(filter_columns)
 
     wb = Workbook()
@@ -140,7 +142,8 @@ def main():
     arg_sheet = args.arg_sheet
     arg_filter_cols = args.arg_filter_cols
 
-    datasheets = read_csv(arg_csv)
+    filter_columns = utility.format_filter_cols(arg_filter_cols)
+    datasheets = read_csv(arg_csv, filter_columns)
     create_workbooks(full=datasheets['full'], abridged=datasheets['abridged'], filter_columns=arg_filter_cols, sheet_name=arg_sheet, output=arg_output)
 
 if __name__ == "__main__":
