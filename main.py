@@ -72,7 +72,7 @@ def read_csv(filename: str, filter_cols: list[str]) -> dict[str, dict[str, str]]
     
     return { 'full': full, 'abridged': abridged }
 
-def create_full_workbook(workbook, worksheet, full: dict[str, str], opt_bold_header: bool):
+def create_full_workbook(workbook, worksheet, full: dict[str, str], opt_bold_header: bool, opt_auto_filter: bool, opt_auto_width_columns: bool):
     """Manage creating the 'full' workbook. This one is basically a copy of the original CSV data."""
     workbook.active = worksheet
     num_of_cols = len(full[0].keys())
@@ -81,16 +81,19 @@ def create_full_workbook(workbook, worksheet, full: dict[str, str], opt_bold_hea
     worksheet.append(col_names) # NOTE: Creates header row
     if opt_bold_header:
         bold_header(worksheet) # NOTE: Must execute AFTER data has been written to the header row.
-    full_sheet_row_counter = 0
     
+    full_sheet_row_counter = 0
     for f_row in full:
         worksheet.append( utility.get_row(f_row, col_names) )
         full_sheet_row_counter += 1
     
-    autofit_columns(worksheet)
-    configure_filters(worksheet, full_sheet_row_counter, num_of_cols)
+    if opt_auto_width_columns:
+        autofit_columns(worksheet)
 
-def create_filtered_workbook(workbook, worksheet, abridged: dict[str, str], filter_columns: list[str], opt_bold_header: bool):
+    if opt_auto_filter:
+        configure_filters(worksheet, full_sheet_row_counter, num_of_cols)
+
+def create_filtered_workbook(workbook, worksheet, abridged: dict[str, str], filter_columns: list[str], opt_bold_header: bool, opt_auto_filter: bool, opt_auto_width_columns: bool):
     workbook.active = worksheet
     worksheet.append(filter_columns)
 
@@ -106,8 +109,11 @@ def create_filtered_workbook(workbook, worksheet, abridged: dict[str, str], filt
         worksheet.append( utility.get_row_filtered(row, abr_col_names, filter_columns) )
         row_counter += 1
     
-    autofit_columns(worksheet)
-    configure_filters(worksheet, row_counter, abr_num_of_cols)
+    if opt_auto_width_columns:
+        autofit_columns(worksheet)
+    
+    if opt_auto_filter:
+        configure_filters(worksheet, row_counter, abr_num_of_cols)
 
 def create_workbooks(
         full: dict[str, str], 
@@ -129,8 +135,12 @@ def create_workbooks(
     ws1 = wb.create_sheet(sheet_name)
     ws2 = wb.create_sheet('raw_data')
     
-    create_filtered_workbook(workbook=wb, worksheet=ws1, abridged=abridged, filter_columns=filter_columns, opt_bold_header=bold_option)
-    create_full_workbook(workbook=wb, worksheet=ws2, full=full, opt_bold_header=bold_option)
+    create_filtered_workbook(
+        workbook=wb, worksheet=ws1, abridged=abridged, filter_columns=filter_columns, 
+        opt_bold_header=bold_option, opt_auto_filter=auto_filter_option, opt_auto_width_columns=auto_width_option)
+    create_full_workbook(
+        workbook=wb, worksheet=ws2, full=full, 
+        opt_bold_header=bold_option, opt_auto_filter=auto_filter_option, opt_auto_width_columns=auto_width_option)
 
     set_zoom_scale(wb)
     wb.save(output)
