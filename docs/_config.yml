@@ -1,0 +1,15 @@
+############################
+# --- Required options --- #
+############################
+
+# Name of website
+title: Excellify - Docs
+
+# Your name to show in the footer
+author: meddlin
+
+# Set the theme
+theme: jekyll-theme-architect
+
+# Suggest a colour for mobile browsers to use as the browser's theme. This is only supported by a few mobile browsers.
+#mobile-theme-col: "#0085A1"
