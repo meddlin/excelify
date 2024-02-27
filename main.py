@@ -72,14 +72,15 @@ def read_csv(filename: str, filter_cols: list[str]) -> dict[str, dict[str, str]]
     
     return { 'full': full, 'abridged': abridged }
 
-def create_full_workbook(workbook, worksheet, full: dict[str, str]):
+def create_full_workbook(workbook, worksheet, full: dict[str, str], opt_bold_header: bool):
     """Manage creating the 'full' workbook. This one is basically a copy of the original CSV data."""
     workbook.active = worksheet
     num_of_cols = len(full[0].keys())
     col_names = list(full[0].keys())
 
     worksheet.append(col_names) # NOTE: Creates header row
-    bold_header(worksheet) # NOTE: Must execute AFTER data has been written to the header row.
+    if opt_bold_header:
+        bold_header(worksheet) # NOTE: Must execute AFTER data has been written to the header row.
     full_sheet_row_counter = 0
     
     for f_row in full:
@@ -89,10 +90,12 @@ def create_full_workbook(workbook, worksheet, full: dict[str, str]):
     autofit_columns(worksheet)
     configure_filters(worksheet, full_sheet_row_counter, num_of_cols)
 
-def create_filtered_workbook(workbook, worksheet, abridged: dict[str, str], filter_columns: list[str]):
+def create_filtered_workbook(workbook, worksheet, abridged: dict[str, str], filter_columns: list[str], opt_bold_header: bool):
     workbook.active = worksheet
     worksheet.append(filter_columns)
-    bold_header(worksheet) # NOTE: Must execute AFTER data has been written to the header row.
+
+    if opt_bold_header:
+        bold_header(worksheet) # NOTE: Must execute AFTER data has been written to the header row.
 
     row_counter = 0
     abr_num_of_cols = len(abridged[0].keys())
@@ -106,7 +109,16 @@ def create_filtered_workbook(workbook, worksheet, abridged: dict[str, str], filt
     autofit_columns(worksheet)
     configure_filters(worksheet, row_counter, abr_num_of_cols)
 
-def create_workbooks(full: dict[str, str], abridged: dict[str, str], filter_columns: str, sheet_name: str, output: str):
+def create_workbooks(
+        full: dict[str, str], 
+        abridged: dict[str, str], 
+        filter_columns: str, 
+        sheet_name: str, 
+        output: str,
+        bold_option,
+        auto_filter_option,
+        auto_width_option
+    ):
     """Create workbooks and control what changes are made to them. (This is where the magic happens)"""
 
     filter_columns = utility.format_filter_cols(filter_columns)
@@ -117,8 +129,8 @@ def create_workbooks(full: dict[str, str], abridged: dict[str, str], filter_colu
     ws1 = wb.create_sheet(sheet_name)
     ws2 = wb.create_sheet('raw_data')
     
-    create_filtered_workbook(workbook=wb, worksheet=ws1, abridged=abridged, filter_columns=filter_columns)
-    create_full_workbook(workbook=wb, worksheet=ws2, full=full)
+    create_filtered_workbook(workbook=wb, worksheet=ws1, abridged=abridged, filter_columns=filter_columns, opt_bold_header=bold_option)
+    create_full_workbook(workbook=wb, worksheet=ws2, full=full, opt_bold_header=bold_option)
 
     set_zoom_scale(wb)
     wb.save(output)
@@ -135,16 +147,32 @@ def main():
     parser.add_argument('--output', type=str, required=True, dest='arg_output', help="Output path for resulting .xlsx file")
     parser.add_argument('--sheet', type=str, required=True, dest='arg_sheet', help="Worksheet name where filtered data will land")
     parser.add_argument('--filter-cols', type=str, required=True, dest='arg_filter_cols', help="Comma-separated list of columns to INCLUDE on new worksheet, other columns are left behind on 'raw' worksheet")
+
+    parser.add_argument('--no-bh', action=argparse.BooleanOptionalAction, dest='arg_no_bold', help="Turn off bold headers")
+    parser.add_argument('--no-af', action=argparse.BooleanOptionalAction, dest='arg_no_auto_filter', help="Turn off auto-filters")
+    parser.add_argument('--no-aw', action=argparse.BooleanOptionalAction, dest='arg_no_auto_width', help="Turn off auto-width fitment")
     
     args = parser.parse_args()
     arg_csv = args.arg_csv
     arg_output = args.arg_output
     arg_sheet = args.arg_sheet
     arg_filter_cols = args.arg_filter_cols
+    arg_no_bold = args.arg_no_bold
+    arg_no_auto_filter = args.arg_no_auto_filter
+    arg_no_auto_width = args.arg_no_auto_width
 
     filter_columns = utility.format_filter_cols(arg_filter_cols)
     datasheets = read_csv(arg_csv, filter_columns)
-    create_workbooks(full=datasheets['full'], abridged=datasheets['abridged'], filter_columns=arg_filter_cols, sheet_name=arg_sheet, output=arg_output)
+    create_workbooks(
+        full=datasheets['full'], 
+        abridged=datasheets['abridged'], 
+        filter_columns=arg_filter_cols, 
+        sheet_name=arg_sheet, 
+        output=arg_output,
+        bold_option=utility.parse_optional_bool_flag(arg_no_bold),
+        auto_filter_option=utility.parse_optional_bool_flag(arg_no_auto_filter),
+        auto_width_option=utility.parse_optional_bool_flag(arg_no_auto_width)
+    )
 
 if __name__ == "__main__":
     main()

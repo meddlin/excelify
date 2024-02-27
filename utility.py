@@ -27,3 +27,17 @@ def format_filter_cols(filter_cs_list: str) -> list[str]:
         cleaned.append(col.strip().replace("'", ""))
     
     return cleaned
+
+def parse_optional_bool_flag(option) -> bool:
+    """
+        Force a nullable field to be a boolean.
+        Helpful with CLI flags.
+
+        Default to true, where None (or not set) equals True.
+    """
+    if option is None:
+        return True
+    if option is False:
+        return False
+    
+    return True
